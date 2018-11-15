@@ -1,0 +1,36 @@
+server:
+  port: 9003
+  servlet:
+    session:
+      cookie:
+       # 自定义 cookie 解决 BadCredentialsException: Could not obtain access token 问题
+       # 此问题表现为，访问客户端 client 对应的 url后，一直重复跳转到授权服务器login路径。
+       # 具体原因是在访问client 对应的 url 后跳转到客户端 login路径，login发现没授权后，跳转到 授权服务器，授权服务器授权完成后，跳转到login，而由于没找到授权信息，又跳到授权服务器 login。
+       # 触发原因：是因为在同一个域名下localhost下，授权服务器和资源服务器的 Cookie 名都是 JSESSIONID，
+       # 导致在跳转到授权服务器后将资源服务器的 Cookie 覆盖了，再次跳转回去时授权服务器的 Cookie 对资源服务器无效，再次跳转到登录页面，该动作一直重复，导致授权失败
+        name: CLIENT_SESSIONID
+
+auth-server: http://localhost:9001
+
+security:
+  oauth2:
+    client:
+      client-id: client
+      client-secret: 123456
+      access-token-uri: ${auth-server}/oauth/token
+      user-authorization-uri: ${auth-server}/oauth/authorize
+#      grant-type: password
+#      scope: app
+    resource:
+#      id: client
+      # 客户端用来获得用户的凭证,一定要通过下面方法检查路径是否配置正确
+      #  http://localhost:9002/user/me?access_token=0185cbd1-ec58-4e75-85ca-2458e2f00b83
+      #  当此路径配置有问题时，会导致页面一直在 http://localhost:9003/login 往 http://localhost:9003/login 跳转，出现死循环，直至浏览器报错
+      user-info-uri: http://localhost:9002/user/me
+
+
+
+logging:
+  level:
+    root: DEBUG
+

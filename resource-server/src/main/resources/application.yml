@@ -1,0 +1,29 @@
+server:
+  port: 9002
+  servlet:
+    session:
+      cookie:
+             # 自定义 cookie 解决 BadCredentialsException: Could not obtain access token 问题
+             # 触发原因：是因为在同一个域名下localhost下，授权服务器和资源服务器的 Cookie 名都是 JSESSIONID，
+             # 导致在跳转到授权服务器后将资源服务器的 Cookie 覆盖了，再次跳转回去时授权服务器的 Cookie 对资源服务器无效，再次跳转到登录页面，该动作一直重复，导致授权失败
+        name: RESOURCE_SESSIONID
+
+spring:
+  application:
+    name: resource-server
+
+auth-server: http://localhost:9001
+
+security:
+  oauth2:
+    client:
+      client-id: client
+      client-secret: 123456
+    resource:
+#      service-id: resource-server
+      token-info-uri:  ${auth-server}/oauth/check_token
+
+
+logging:
+  level:
+    root: debug
